@@ -1,12 +1,13 @@
 {
   "variables": {
     "login_username": "vagrant",
-    "login_password": "vagrant"
+    "login_password": "vagrant",
+    "vagrant_output": "./ubuntu-vagrant.box"
   },
   "builders": [{
     "type": "virtualbox-iso",
     "guest_os_type": "Ubuntu_64",
-    "name": "ubuntu-{{timestamp}}",
+    "name": "ubuntu",
     "iso_url": "http://releases.ubuntu.com/12.04/ubuntu-12.04.3-server-amd64.iso",
     "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
     "iso_checksum_type": "md5",
@@ -32,5 +33,23 @@
       "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
       "initrd=/install/initrd.gz -- <enter>"
     ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "execute_command": "echo '{{user `login_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+    "scripts": [
+      "scripts/virtualbox.sh",
+      "scripts/vagrant.sh",
+      "scripts/cleanup.sh"
+    ]
+  },
+  {
+    "type": "puppet-masterless",
+    "manifest_file": "manifests/site.pp",
+    "execute_command": "echo '{{user `login_password`}}' | sudo -S -E puppet apply --verbose --modulepath='{{.ModulePath}}' --manifestdir='{{.ManifestDir}}' {{.ManifestFile}}"
+  }],
+  "post-processors": [{
+    "type": "vagrant",
+    "output": "{{user `vagrant_output`}}"
   }]
 }
