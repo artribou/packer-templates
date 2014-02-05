@@ -1,8 +1,7 @@
 {
   "variables": {
     "login_username": "vagrant",
-    "login_password": "vagrant",
-    "vagrant_output": "./ubuntu-vagrant.box"
+    "login_password": "vagrant"
   },
   "builders": [{
     "type": "virtualbox-iso",
@@ -49,7 +48,6 @@
     "execute_command": "echo '{{user `login_password`}}' | sudo -S -E puppet apply --verbose --modulepath='{{.ModulePath}}' --manifestdir='{{.ManifestDir}}' {{.ManifestFile}}"
   }],
   "post-processors": [{
-    "type": "vagrant",
-    "output": "{{user `vagrant_output`}}"
+    "type": "vagrant"
   }]
 }
