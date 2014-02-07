@@ -1,0 +1,50 @@
+{
+  "variables": {
+    "login_user": "vagrant",
+    "login_pass": "vagrant",
+    "zero": "false"
+  },
+  "builders": [{
+    "type": "virtualbox-iso",
+    "guest_os_type": "RedHat_64",
+    "name": "centos5",
+    "iso_url": "http://mirror.rackspace.com/CentOS/5/isos/x86_64/CentOS-5.10-x86_64-netinstall.iso",
+    "iso_checksum": "0eaa8b1958132fa4dd9c7d7eb716a4e49f0802d6",
+    "iso_checksum_type": "sha1",
+    "ssh_username": "{{user `login_user`}}",
+    "ssh_password": "{{user `login_pass`}}",
+    "ssh_wait_timeout": "60m",
+    "http_directory": "http",
+    "shutdown_command": "echo '{{user `login_pass`}}' | sudo -S /sbin/shutdown -h now",
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--memory", "512"],
+      ["modifyvm", "{{.Name}}", "--cpus", "2"],
+      ["modifyvm", "{{.Name}}", "--natdnshostresolver1", "on"],
+      ["modifyvm", "{{.Name}}", "--natdnsproxy1", "on"]
+    ],
+    "boot_command": [
+      "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "environment_vars": [
+      "ZERO_DISK={{user `zero`}}"
+    ],
+    "execute_command": "echo '{{user `login_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+    "scripts": [
+      "scripts/virtualbox.sh",
+      "scripts/vagrant.sh",
+      "scripts/cleanup.sh",
+      "scripts/zerodisk.sh"
+    ]
+  },
+  {
+    "type": "puppet-masterless",
+    "manifest_file": "manifests/site.pp",
+    "execute_command": "echo '{{user `login_pass`}}' | sudo -S -E puppet apply --verbose --debug --modulepath='{{.ModulePath}}' --manifestdir='{{.ManifestDir}}' {{.ManifestFile}}"
+  }],
+  "post-processors": [{
+    "type": "vagrant"
+  }]
+}
