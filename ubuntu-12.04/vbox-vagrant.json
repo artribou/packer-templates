@@ -1,7 +1,8 @@
 {
   "variables": {
     "login_username": "vagrant",
-    "login_password": "vagrant"
+    "login_password": "vagrant",
+    "zero": "false"
   },
   "builders": [{
     "type": "virtualbox-iso",
@@ -35,6 +36,9 @@
   }],
   "provisioners": [{
     "type": "shell",
+    "environment_vars": [
+      "ZERO_DISK={{user `zero`}}"
+    ],
     "execute_command": "echo '{{user `login_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
     "scripts": [
       "scripts/virtualbox.sh",
